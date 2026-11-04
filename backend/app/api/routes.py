@@ -1259,7 +1259,9 @@ async def trace_from_mask(
     mask_path.write_bytes(content)
 
     corrected_image_path = _abs(session.corrected_image_path)
-    contours = _get_tracer()._trace_mask(str(mask_path), corrected_image_path)
+    with Image.open(mask_path) as mask_img, Image.open(corrected_image_path) as corr_img:
+        align_mask = mask_img.size != corr_img.size
+    contours = _get_tracer()._trace_mask(str(mask_path), corrected_image_path, align=align_mask)
 
     if not contours:
         raise HTTPException(status_code=400, detail="no tool outlines found in mask")

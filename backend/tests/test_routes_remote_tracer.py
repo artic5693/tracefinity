@@ -82,3 +82,44 @@ def test_trace_remote_timeout_message_is_provider_aware(tmp_path, monkeypatch):
     assert resp.status_code == 504
     assert "Gemini" not in resp.json()["detail"]
     assert "fal.ai" in resp.json()["detail"]
+
+
+def test_trace_from_mask_aligns_only_when_dimensions_differ(tmp_path, monkeypatch):
+    import io
+    from PIL import Image
+
+    monkeypatch.setattr(routes.settings, "tracers", "isnet")
+    client = _client(tmp_path, monkeypatch)
+    proc = tmp_path / "default" / "processed"
+    proc.mkdir(parents=True, exist_ok=True)
+    Image.new("RGB", (200, 100), "white").save(proc / "c.png")
+    sessions, _, _ = routes.get_stores("default")
+    sessions.set("s1", Session(id="s1", corrected_image_path="default/processed/c.png"))
+
+    align_calls: list[bool] = []
+
+    class FakeTracer:
+        def _trace_mask(self, mask_path, original_path, align=False):
+            align_calls.append(align)
+            return [([(10.0, 10.0), (50.0, 10.0), (50.0, 50.0), (10.0, 50.0)], [])]
+
+    monkeypatch.setattr(routes, "_get_tracer", lambda *a, **k: FakeTracer())
+
+    same_buf = io.BytesIO()
+    Image.new("RGB", (200, 100), "white").save(same_buf, format="PNG")
+    resp_same = client.post(
+        "/api/sessions/s1/trace-mask",
+        files={"mask": ("mask.png", same_buf.getvalue(), "image/png")},
+    )
+    assert resp_same.status_code == 200
+    assert align_calls == [False]
+
+    diff_buf = io.BytesIO()
+    Image.new("RGB", (160, 80), "white").save(diff_buf, format="PNG")
+    resp_diff = client.post(
+        "/api/sessions/s1/trace-mask",
+        files={"mask": ("mask.png", diff_buf.getvalue(), "image/png")},
+    )
+    assert resp_diff.status_code == 200
+    assert align_calls == [False, True]
+
