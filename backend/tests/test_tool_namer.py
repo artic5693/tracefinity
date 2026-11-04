@@ -91,6 +91,10 @@ class _FakeResponse:
     def json(self):
         return self._json_body
 
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(f"HTTP {self.status_code}")
+
 
 def test_openrouter_namer_falls_through_to_next_model_on_429(monkeypatch):
     calls: list[str] = []
@@ -128,6 +132,33 @@ def test_openrouter_namer_returns_none_when_content_missing(monkeypatch):
     )
 
     assert asyncio.run(namer.name(b"\x89PNG")) is None
+
+
+def test_ollama_namer_passes_options_and_parses_label(monkeypatch):
+    captured_payload = {}
+
+    async def fake_post(_self, _url, json):
+        captured_payload.update(json)
+        return _FakeResponse(200, {"message": {"content": '{"name":"diagonal cutters"}'}})
+
+    monkeypatch.setattr("httpx.AsyncClient.post", fake_post)
+
+    namer = OllamaToolNamer(
+        ToolNamerConfig(
+            provider="ollama",
+            model="qwen3-vl:4b",
+            num_ctx=8192,
+            num_predict=1024,
+        )
+    )
+
+    label = asyncio.run(namer.name(b"\x89PNG"))
+
+    assert label == "diagonal cutters"
+    assert captured_payload["model"] == "qwen3-vl:4b"
+    assert captured_payload["options"]["num_ctx"] == 8192
+    assert captured_payload["options"]["num_predict"] == 1024
+    assert captured_payload["options"]["temperature"] == 0
 
 
 def test_parse_valid_ollama_json_label():

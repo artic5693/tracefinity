@@ -74,6 +74,8 @@ class ToolNamerConfig:
     max_crop_px: int = 512
     openrouter_api_key: str | None = settings.openrouter_api_key
     openrouter_model: str = settings.openrouter_label_model
+    num_ctx: int = 8192
+    num_predict: int = 1024
 
     @classmethod
     def from_settings(cls) -> "ToolNamerConfig":
@@ -85,6 +87,8 @@ class ToolNamerConfig:
             max_crop_px=settings.tool_label_max_crop_px,
             openrouter_api_key=settings.openrouter_api_key,
             openrouter_model=settings.openrouter_label_model,
+            num_ctx=settings.tool_label_num_ctx,
+            num_predict=settings.tool_label_num_predict,
         )
 
 
@@ -112,7 +116,11 @@ class OllamaToolNamer:
                     "images": [image_b64],
                 }
             ],
-            "options": {"temperature": 0},
+            "options": {
+                "temperature": 0,
+                "num_ctx": self.config.num_ctx,
+                "num_predict": self.config.num_predict,
+            },
         }
         url = self.config.ollama_url.rstrip("/") + "/api/chat"
 
