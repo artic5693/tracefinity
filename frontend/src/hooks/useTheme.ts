@@ -33,10 +33,10 @@ export function initTheme() {
   if (initialized || typeof window === 'undefined') return
   initialized = true
 
-  const stored = localStorage.getItem('theme')
+  const stored = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('theme') : null
   if (stored === 'light' || stored === 'dark') {
     document.documentElement.setAttribute('data-theme', stored)
-  } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+  } else if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: light)').matches) {
     document.documentElement.setAttribute('data-theme', 'light')
   } else {
     document.documentElement.setAttribute('data-theme', 'dark')

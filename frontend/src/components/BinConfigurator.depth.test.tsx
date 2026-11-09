@@ -5,7 +5,13 @@ import { BinConfigurator } from './BinConfigurator'
 import { FACTORY_BIN_CONFIG } from '@/lib/binDefaults'
 
 afterEach(cleanup)
-beforeEach(() => localStorage.setItem('theme', 'dark'))
+beforeEach(() => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem('theme', 'dark')
+    }
+  } catch {}
+})
 
 function row(label: string) {
   return within(screen.getByText(label, { exact: true }).parentElement!)

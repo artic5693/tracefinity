@@ -95,7 +95,9 @@ function BinStlModel({ url, color, renderMode, fallback }: {
     let loadedGeo: THREE.BufferGeometry | null = null
     let loadedEdges: THREE.EdgesGeometry | null = null
 
-    new STLLoader().load(
+    const loader = new STLLoader()
+    loader.setWithCredentials(true)
+    loader.load(
       url,
       geo => {
         if (disposed) { geo.dispose(); return }

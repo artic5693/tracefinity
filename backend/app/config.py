@@ -59,8 +59,10 @@ class Settings(BaseSettings):
     tool_label_provider: str = "none"
     tool_label_model: str = "qwen3-vl:4b"
     tool_label_ollama_url: str = "http://localhost:11434"
-    tool_label_timeout_seconds: float = 30.0
+    tool_label_timeout_seconds: float = 90.0
     tool_label_max_crop_px: int = 512
+    tool_label_num_ctx: int = 8192
+    tool_label_num_predict: int = 1024
     photo_stations: bool = False
 
     model_config = {

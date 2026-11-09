@@ -271,6 +271,24 @@ class AITracer:
         else:
             raise ValueError(f"unsupported saliency model: {name}")
 
+    def unload(self):
+        """release loaded model weights and sessions from memory."""
+        if self._saliency_backend is None:
+            return
+        kind, handle = self._saliency_backend
+        self._saliency_backend = None
+        del handle
+        import gc
+        gc.collect()
+        try:
+            import torch
+            if torch.backends.mps.is_available():
+                torch.mps.empty_cache()
+            elif torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            pass
+
     @staticmethod
     def _detect_paper_rect(img: np.ndarray) -> tuple[int, int, int, int] | None:
         """find the axis-aligned paper rect in a corrected image.

@@ -8,11 +8,11 @@ export function createPartialBinsValues(gridX: number, gridY: number): boolean[]
 export const FACTORY_BIN_CONFIG: BinConfig = {
   grid_x: 2,
   grid_y: 2,
-  height_units: 4,
+  height_units: 6,
   magnets: true,
   magnet_diameter: 6.0,
   magnet_depth: 2.4,
-  magnet_corners_only: false,
+  magnet_corners_only: true,
   stacking_lip: true,
   rim_units: 0,
   wall_thickness: 1.6,
@@ -27,7 +27,7 @@ export const FACTORY_BIN_CONFIG: BinConfig = {
   partial_bins_values: createPartialBinsValues(2, 2),
   partial_bins_connect: false,
   partial_bins_retain_wall: false,
-  bed_size: 256,
+  bed_size: 320,
   text_labels: [],
 }
 

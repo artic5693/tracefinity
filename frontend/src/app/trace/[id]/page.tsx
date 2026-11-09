@@ -24,12 +24,15 @@ const PAPER_SIZE_OPTIONS: { value: PaperSize; label: string }[] = [
   { value: 'tabloid', label: 'Tabloid' },
 ]
 
-const MASK_PROMPT = `Generate a pure black and white silhouette mask of ONLY the tools/objects in this image.
-- Tools should be solid BLACK (#000000)
-- Background should be solid WHITE (#FFFFFF)
-- No shadows, gradients, or gray tones
-- Sharp, clean edges
-- Output ONLY the mask image, no text or explanation`
+const MASK_PROMPT = `Create a black and white mask of this image.
+
+Instructions:
+1. Keep the exact same image dimensions and aspect ratio as the input photo
+2. Every tool or object lying on the paper: pure black (#000000) silhouette. Include small, thin, shiny and low-contrast items, not only the largest one
+3. Everything else (paper, shadows, background): pure white (#FFFFFF)
+4. Trace the actual edges of each object, NOT the shadow edges
+5. Each object must stay in the exact same position as in the input photo
+6. Output ONLY the mask image — no textures, no grey, no gradients`
 
 const TRACE_STEPS = [
   'Uploading image...',
@@ -177,8 +180,12 @@ export default function TracePage() {
       setPhotoWarnings(result.warnings ?? [])
       setWarningsDismissed(false)
 
-      if (singleTracer && tracers.length === 1) {
-        // single tracer: trace immediately without changing step
+      const defaultTracerId = selectedTracer || tracers[0]?.id
+      const canAutoTrace = Boolean(
+        defaultTracerId && (defaultTracerId !== 'gemini' || hasEnvKey || apiKey.trim())
+      )
+      if (canAutoTrace && defaultTracerId) {
+        // auto-trace immediately with the primary/selected tracer without stopping at the trace step
         setTraceStatus(TRACE_STEPS[0])
         let si = 0
         statusInterval.current = setInterval(() => {
@@ -187,11 +194,10 @@ export default function TracePage() {
         }, 3000)
 
         try {
-          const tid = tracers[0].id
           const traceResult = await traceTools(
             sessionId, 'google',
             hasEnvKey ? undefined : apiKey,
-            tid,
+            defaultTracerId,
           )
           setPolygons(traceResult.polygons)
           if (traceResult.mask_url) {
@@ -288,7 +294,7 @@ export default function TracePage() {
   async function handleDownloadImage() {
     if (!correctedImageUrl) return
     try {
-      const response = await fetch(getImageUrl(correctedImageUrl))
+      const response = await fetch(getImageUrl(correctedImageUrl), { credentials: 'include' })
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -427,7 +433,7 @@ export default function TracePage() {
           {step === 'trace' && (
             <div className="space-y-3">
               <TraceHint />
-              {tracers.length > 1 && (
+              {tracers.length > 0 && (
                 <div className="relative" ref={methodRef}>
                   <span className="text-xs text-text-primary tracking-[0.3px]">Tracer</span>
                   <button
@@ -458,6 +464,15 @@ export default function TracePage() {
                           </button>
                         )
                       })}
+                      <button
+                        onClick={() => { setProvider('manual'); setMethodOpen(false) }}
+                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors cursor-pointer flex items-center gap-2 ${
+                          provider === 'manual' ? 'text-accent' : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
+                        }`}
+                      >
+                        {provider === 'manual' ? <Check className="w-3 h-3" /> : <span className="w-3" />}
+                        Manual mask upload
+                      </button>
                     </div>
                   )}
                 </div>
@@ -506,7 +521,7 @@ export default function TracePage() {
                     </div>
                   )}
 
-                  {selectedTracer === 'gemini' && tracers.length > 1 && !processing && (
+                  {!processing && (
                     <button
                       onClick={() => setProvider('manual')}
                       className="text-xs text-accent/70 hover:text-accent underline underline-offset-2 decoration-accent/30 hover:decoration-accent transition-colors cursor-pointer"
@@ -679,7 +694,7 @@ export default function TracePage() {
             </button>
           )}
 
-          {step === 'trace' && provider === 'google' && (tracers.length > 1 || processing) && (
+          {step === 'trace' && provider === 'google' && (tracers.length >= 1 || processing) && (
             <button
               onClick={() => handleTrace()}
               disabled={(selectedTracer === 'gemini' && !hasEnvKey && !apiKey.trim()) || processing}
