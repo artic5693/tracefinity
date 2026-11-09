@@ -34,15 +34,17 @@ vi.mock('@/lib/api', () => ({
   saveToolsFromSession: vi.fn(),
 }))
 
-import { getAvailableKeys, getSession, traceTools } from '@/lib/api'
+import { getAvailableKeys, getSession, setCorners, traceTools } from '@/lib/api'
 
 const getSessionMock = vi.mocked(getSession)
 const getAvailableKeysMock = vi.mocked(getAvailableKeys)
+const setCornersMock = vi.mocked(setCorners)
 const traceToolsMock = vi.mocked(traceTools)
 
 beforeEach(() => {
   getSessionMock.mockReset()
   getAvailableKeysMock.mockReset()
+  setCornersMock.mockReset()
   traceToolsMock.mockReset()
 })
 
@@ -155,5 +157,48 @@ describe('TracePage local model & manual mask workflow', () => {
     expect(await screen.findByRole('button', { name: 'Trace Tools' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Upload a mask manually' }))
     expect(await screen.findByRole('button', { name: 'Upload Mask' })).toBeTruthy()
+  })
+
+  it('auto-traces with primary tracer on Continue when multiple local tracers are configured', async () => {
+    getSessionMock.mockResolvedValue(makeSession({
+      corrected_image_path: null,
+      polygons: [],
+    }))
+
+    getAvailableKeysMock.mockResolvedValue({
+      google: true,
+      provider: 'local',
+      provider_label: 'InSPyReNet',
+      tracers: [
+        { id: 'inspyrenet', label: 'InSPyReNet' },
+        { id: 'birefnet-lite', label: 'BiRefNet Lite' },
+        { id: 'isnet', label: 'IS-Net' },
+      ],
+      photo_stations: false,
+    })
+
+    setCornersMock.mockResolvedValue({
+      corrected_image_url: '/storage/default/processed/sess-local-1_corrected.jpg',
+      scale_factor: 0.2,
+      warnings: [],
+    })
+
+    traceToolsMock.mockResolvedValue({
+      polygons: [SAMPLE_POLYGON],
+      mask_url: '/storage/default/processed/sess-local-1_mask.png',
+    })
+
+    render(<TracePage />)
+
+    // Click Continue on the Corners step
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue' }))
+
+    await waitFor(() => {
+      expect(setCornersMock).toHaveBeenCalledTimes(1)
+      expect(traceToolsMock).toHaveBeenCalledWith('sess-local-1', 'google', undefined, 'inspyrenet')
+    })
+
+    // Lands directly on the Select Tools (edit) step
+    expect(await screen.findByRole('button', { name: 'Re-trace' })).toBeTruthy()
   })
 })

@@ -9,7 +9,7 @@ import { NumericInput } from '@/components/NumericInput'
 
 export function SettingsPopover() {
   const [open, setOpen] = useState(false)
-  const [bedSize, setBedSize] = useState(256)
+  const [bedSize, setBedSize] = useState(320)
   const [version, setVersion] = useState<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 

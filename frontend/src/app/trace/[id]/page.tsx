@@ -180,8 +180,12 @@ export default function TracePage() {
       setPhotoWarnings(result.warnings ?? [])
       setWarningsDismissed(false)
 
-      if (singleTracer && tracers.length === 1) {
-        // single tracer: trace immediately without changing step
+      const defaultTracerId = selectedTracer || tracers[0]?.id
+      const canAutoTrace = Boolean(
+        defaultTracerId && (defaultTracerId !== 'gemini' || hasEnvKey || apiKey.trim())
+      )
+      if (canAutoTrace && defaultTracerId) {
+        // auto-trace immediately with the primary/selected tracer without stopping at the trace step
         setTraceStatus(TRACE_STEPS[0])
         let si = 0
         statusInterval.current = setInterval(() => {
@@ -190,11 +194,10 @@ export default function TracePage() {
         }, 3000)
 
         try {
-          const tid = tracers[0].id
           const traceResult = await traceTools(
             sessionId, 'google',
             hasEnvKey ? undefined : apiKey,
-            tid,
+            defaultTracerId,
           )
           setPolygons(traceResult.polygons)
           if (traceResult.mask_url) {
@@ -291,7 +294,7 @@ export default function TracePage() {
   async function handleDownloadImage() {
     if (!correctedImageUrl) return
     try {
-      const response = await fetch(getImageUrl(correctedImageUrl))
+      const response = await fetch(getImageUrl(correctedImageUrl), { credentials: 'include' })
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')

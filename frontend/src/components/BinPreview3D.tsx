@@ -24,6 +24,7 @@ function StlModel({ url, renderMode, color = '#5ab4de', edgeColor = '#1e3d5c' }:
 
   useEffect(() => {
     const loader = new STLLoader()
+    loader.setWithCredentials(true)
     let disposed = false
     let loadedGeo: THREE.BufferGeometry | null = null
     let loadedEdges: THREE.EdgesGeometry | null = null
@@ -98,6 +99,7 @@ function SplitModels({ urls, renderMode }: { urls: string[]; renderMode: RenderM
 
   useEffect(() => {
     const loader = new STLLoader()
+    loader.setWithCredentials(true)
     let cancelled = false
     let loadedPieces: { geo: THREE.BufferGeometry; edges: THREE.EdgesGeometry }[] = []
 

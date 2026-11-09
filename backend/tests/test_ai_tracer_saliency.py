@@ -35,3 +35,40 @@ def test_remote_tracer_builds_config_and_calls_module(monkeypatch):
     assert called["cfg"].provider == "fal"
     assert called["cfg"].model == "fal-ai/birefnet/v2"
     assert called["target"] == (12, 9)  # (w, h)
+
+
+def test_ai_tracer_unload(monkeypatch):
+    t = AITracer(saliency_tracer="fal", remote_model="fal-ai/birefnet/v2", remote_token="x")
+    assert t._saliency_backend is not None
+    t.unload()
+    assert t._saliency_backend is None
+
+
+def test_get_tracer_evicts_other_local_tracers(monkeypatch):
+    from app.api import routes
+
+    routes._tracers.clear()
+    monkeypatch.setattr(routes.settings, "tracers", "inspyrenet,birefnet-lite")
+
+    fake_unloaded = []
+
+    class FakeLocalTracer:
+        def __init__(self, name):
+            self.name = name
+        def unload(self):
+            fake_unloaded.append(self.name)
+
+    monkeypatch.setattr(routes, "AITracer", lambda saliency_tracer=None, **k: FakeLocalTracer(saliency_tracer))
+
+    t1 = routes._get_tracer("inspyrenet")
+    assert "inspyrenet" in routes._tracers
+    assert fake_unloaded == []
+
+    # Requesting a different local tracer should evict the previous one
+    t2 = routes._get_tracer("birefnet-lite")
+    assert "birefnet-lite" in routes._tracers
+    assert "inspyrenet" not in routes._tracers
+    assert fake_unloaded == ["inspyrenet"]
+
+    routes._tracers.clear()
+

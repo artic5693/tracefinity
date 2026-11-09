@@ -112,7 +112,7 @@ describe('bin defaults', () => {
     const stored = JSON.parse(storage.getItem(SETTINGS_KEY) || '{}')
 
     expect(reset.magnet_diameter).toBe(6)
-    expect(stored.bedSize).toBe(256)
+    expect(stored.bedSize).toBe(320)
     expect(stored.binDefaults).toBeUndefined()
   })
 

@@ -136,11 +136,11 @@ class PolygonsRequest(BaseModel):
 class BinParams(BaseModel):
     grid_x: float = 2
     grid_y: float = 2
-    height_units: int = 4
+    height_units: int = 6
     magnets: bool = True
     magnet_diameter: float = 6.0
     magnet_depth: float = 2.4
-    magnet_corners_only: bool = False
+    magnet_corners_only: bool = True
     stacking_lip: bool = True
     rim_units: int = 0  # extra height units (x7mm) the wall/lip rises above the floor face
     wall_thickness: float = 1.6
@@ -246,7 +246,7 @@ class BinParams(BaseModel):
 
 
 class BinDefaults(BinParams):
-    bed_size: float = 256.0  # mm, 0 = no splitting
+    bed_size: float = 320.0  # mm, 0 = no splitting
 
 
 class GenerateRequest(BinDefaults):

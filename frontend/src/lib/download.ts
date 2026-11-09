@@ -22,10 +22,10 @@ function fallbackFilename(url: string): string {
 }
 
 export async function downloadExport(url: string, regenerate: () => Promise<void>): Promise<void> {
-  let response = await fetch(url)
+  let response = await fetch(url, { credentials: 'include' })
   if (response.status === 404) {
     await regenerate()
-    response = await fetch(url)
+    response = await fetch(url, { credentials: 'include' })
   }
   if (!response.ok) {
     throw new Error(`export download failed (${response.status})`)

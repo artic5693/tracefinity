@@ -20,8 +20,8 @@ export const PLACEMENT_COLORS = [
 
 export const DRAWER_GRID_MIN = 1
 export const DRAWER_GRID_MAX = 40
-export const DEFAULT_DRAWER_GRID_X = 6
-export const DEFAULT_DRAWER_GRID_Y = 4
+export const DEFAULT_DRAWER_GRID_X = 9
+export const DEFAULT_DRAWER_GRID_Y = 7
 
 export const PLACEMENT_ROTATIONS = [0, 90, 180, 270] as const
 export type PlacementRotation = (typeof PLACEMENT_ROTATIONS)[number]

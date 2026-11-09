@@ -121,6 +121,7 @@ class OllamaToolNamer:
                 "num_ctx": self.config.num_ctx,
                 "num_predict": self.config.num_predict,
             },
+            "keep_alive": "5m",
         }
         url = self.config.ollama_url.rstrip("/") + "/api/chat"
 

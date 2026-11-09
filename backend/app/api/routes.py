@@ -242,10 +242,19 @@ def _remote_token(tracer_id: str) -> str | None:
 
 
 def _get_tracer(tracer_id: str | None = None) -> AITracer:
-    """get or create a tracer for the given ID."""
+    """get or create a tracer for the given ID, evicting any previously loaded local tracer."""
     tid = tracer_id or settings.available_tracers[0]
+    kind = tracer_kind(tid)
+    is_local = kind not in ("gemini", "remote")
+
+    if is_local and tid not in _tracers:
+        stale_local_ids = [k for k in list(_tracers.keys()) if tracer_kind(k) not in ("gemini", "remote")]
+        for old_id in stale_local_ids:
+            old_tracer = _tracers.pop(old_id, None)
+            if old_tracer:
+                old_tracer.unload()
+
     if tid not in _tracers:
-        kind = tracer_kind(tid)
         if kind == "gemini":
             _tracers[tid] = AITracer(
                 model=settings.gemini_image_model,
