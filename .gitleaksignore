@@ -1,0 +1,3 @@
+# Auth test fixtures in test_auth_startup_state.py
+dd1f918e94fadec774c914c1b7e6141e80f8194c:backend/tests/test_auth_startup_state.py:generic-api-key:111
+090930d9b8647eb26112643d3eedfce780a2a56d:backend/tests/test_auth_startup_state.py:generic-api-key:111
