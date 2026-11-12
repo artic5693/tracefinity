@@ -56,3 +56,7 @@ htmlcov/
 
 # playwright
 .playwright-mcp
+
+# Claude Code local files (may contain secrets)
+.claude/settings.local.json
+CLAUDE.local.md
