@@ -15,6 +15,8 @@
   <a href="https://github.blog/news-insights/octoverse/octoverse-commits-pushes-reach-new-highs-in-2026-as-developers-build-with-agents/"><img src="docs/octoverse-2026.png" alt="Octoverse 2026: tracefinity/tracefinity was a top open source project on GitHub in 2026" width="400"></a>
 </p>
 
+> **Fork:** artic5693's fork of [tracefinity/tracefinity](https://github.com/tracefinity/tracefinity) with drawer-layout fixes (depth calculation, bin configurator inputs, saliency tracer). Commands below use upstream's image.
+
 ## How It Works
 
 1. Place tools on A4, Letter, A3, or Tabloid paper (tools can overflow the edges)
